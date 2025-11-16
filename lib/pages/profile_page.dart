@@ -6,7 +6,7 @@ import 'package:path/path.dart' as p;
 import '../app.dart';
 import '../db/post.dart';
 import '../db/comment.dart';
-import '../db/user.dart';
+import '../utils/time_formatter.dart';
 
 class ProfilePage extends StatefulWidget {
   static const routeName = '/profile';
@@ -113,121 +113,377 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final displayName = user != null
-        ? user!['displayName'] as String
-        : 'Profile';
+    final displayName =
+        user != null ? user!['displayName'] as String : 'Profile';
     final photoPath = user?['profilePhoto'] as String?;
     return Scaffold(
-      appBar: AppBar(title: Text(displayName)),
-      body: userId == null
-          ? const Center(child: Text('No user'))
-          : RefreshIndicator(
-              onRefresh: loadData,
-              child: ListView(
-                padding: const EdgeInsets.all(12),
-                children: [
-                  Row(
+      appBar: AppBar(
+        title: Text(displayName),
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue.shade600, Colors.purple.shade600],
+            ),
+          ),
+        ),
+      ),
+      body:
+          userId == null
+              ? const Center(child: Text('No user'))
+              : Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.blue.shade50, Colors.white],
+                  ),
+                ),
+                child: RefreshIndicator(
+                  onRefresh: loadData,
+                  color: Colors.blue.shade600,
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
                     children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundImage:
-                            (photoPath != null && photoPath.isNotEmpty)
-                            ? FileImage(File(photoPath))
-                            : null,
-                        child: (photoPath == null || photoPath.isEmpty)
-                            ? const Icon(Icons.person, size: 40)
-                            : null,
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Name: ${user?['displayName'] ?? ''}'),
-                          const SizedBox(height: 8),
-                          Text('Email: ${user?['email'] ?? ''}'),
-                        ],
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        icon: const Icon(Icons.photo_camera),
-                        onPressed: _pickProfileImage,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Your Posts',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  ...posts.map(
-                    (p) => Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.08),
+                              blurRadius: 15,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(p.description),
-                            const SizedBox(height: 6),
+                            Stack(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.blue.shade200,
+                                        blurRadius: 15,
+                                        spreadRadius: 3,
+                                      ),
+                                    ],
+                                  ),
+                                  child: CircleAvatar(
+                                    radius: 60,
+                                    backgroundColor: Colors.blue.shade100,
+                                    backgroundImage:
+                                        (photoPath != null &&
+                                                photoPath.isNotEmpty)
+                                            ? FileImage(File(photoPath))
+                                            : null,
+                                    child:
+                                        (photoPath == null || photoPath.isEmpty)
+                                            ? Icon(
+                                              Icons.person,
+                                              size: 60,
+                                              color: Colors.blue.shade600,
+                                            )
+                                            : null,
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: GestureDetector(
+                                    onTap: _pickProfileImage,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Colors.blue.shade600,
+                                            Colors.purple.shade600,
+                                          ],
+                                        ),
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(
+                                              0.2,
+                                            ),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
+                                        Icons.camera_alt,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
                             Text(
-                              p.createdAt,
-                              style: const TextStyle(fontSize: 12),
+                              user?['displayName'] ?? '',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
                             ),
                             const SizedBox(height: 8),
-                            if (p.photo != null && p.photo!.isNotEmpty)
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(6),
-                                child: Image.file(
-                                  File(p.photo!),
-                                  width: double.infinity,
-                                  height: 200,
-                                  fit: BoxFit.cover,
-                                ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
                               ),
-                            const SizedBox(height: 8),
-                            FutureBuilder<List<CommentModel>>(
-                              future: getCommentsForPost(p.id!),
-                              builder: (context, snap) {
-                                final comments = snap.data ?? [];
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Comments',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.email_outlined,
+                                    size: 16,
+                                    color: Colors.blue.shade600,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    user?['email'] ?? '',
+                                    style: TextStyle(
+                                      color: Colors.blue.shade600,
+                                      fontWeight: FontWeight.w500,
                                     ),
-                                    if (comments.isEmpty)
-                                      const Text('No comments yet'),
-                                    ...comments.map(
-                                      (c) => Text(
-                                        '- ${c.content} (by ${c.userId})',
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    TextField(
-                                      controller: _commentCtrl,
-                                      decoration: const InputDecoration(
-                                        hintText: 'Add a comment',
-                                      ),
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: () => addComment(p.id!),
-                                      child: const Text('Add Comment'),
-                                    ),
-                                  ],
-                                );
-                              },
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.grid_on,
+                            color: Colors.grey.shade700,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Your Posts (${posts.length})',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      ...posts.map(
+                        (p) => Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.08),
+                                blurRadius: 15,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  p.description,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    height: 1.4,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  formatTimeAgo(p.createdAt),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                                if (p.photo != null && p.photo!.isNotEmpty) ...[
+                                  const SizedBox(height: 12),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.file(
+                                      File(p.photo!),
+                                      width: double.infinity,
+                                      height: 250,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ],
+                                const SizedBox(height: 16),
+                                Divider(color: Colors.grey.shade200),
+                                const SizedBox(height: 12),
+                                FutureBuilder<List<CommentModel>>(
+                                  future: getCommentsForPost(p.id!),
+                                  builder: (context, snap) {
+                                    final comments = snap.data ?? [];
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.comment_outlined,
+                                              size: 16,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              'Comments (${comments.length})',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.grey.shade700,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 12),
+                                        if (comments.isEmpty)
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 8,
+                                            ),
+                                            child: Text(
+                                              'No comments yet',
+                                              style: TextStyle(
+                                                color: Colors.grey.shade500,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                          ),
+                                        ...comments.map(
+                                          (c) => Container(
+                                            margin: const EdgeInsets.only(
+                                              bottom: 8,
+                                            ),
+                                            padding: const EdgeInsets.all(10),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.shade50,
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            child: Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Icon(
+                                                  Icons.person,
+                                                  size: 16,
+                                                  color: Colors.grey.shade600,
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Expanded(
+                                                  child: Text(
+                                                    c.content,
+                                                    style: const TextStyle(
+                                                      fontSize: 14,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey.shade50,
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: TextField(
+                                                  controller: _commentCtrl,
+                                                  decoration: InputDecoration(
+                                                    hintText:
+                                                        'Write a comment...',
+                                                    hintStyle: TextStyle(
+                                                      color:
+                                                          Colors.grey.shade400,
+                                                    ),
+                                                    border: OutlineInputBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            12,
+                                                          ),
+                                                      borderSide:
+                                                          BorderSide.none,
+                                                    ),
+                                                    contentPadding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 16,
+                                                          vertical: 12,
+                                                        ),
+                                                  ),
+                                                ),
+                                              ),
+                                              Container(
+                                                margin: const EdgeInsets.only(
+                                                  right: 4,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  gradient: LinearGradient(
+                                                    colors: [
+                                                      Colors.blue.shade600,
+                                                      Colors.purple.shade600,
+                                                    ],
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                ),
+                                                child: IconButton(
+                                                  icon: const Icon(
+                                                    Icons.send,
+                                                    color: Colors.white,
+                                                    size: 20,
+                                                  ),
+                                                  onPressed:
+                                                      () => addComment(p.id!),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
     );
   }
 }

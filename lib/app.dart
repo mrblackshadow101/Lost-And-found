@@ -110,9 +110,11 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Minimal Social (SQLite)',
       theme: ThemeData(primarySwatch: Colors.indigo),
-      initialRoute: SplashPage.routeName,
+      // home: LoginPage(),
+      initialRoute: LoginPage.routeName,
       routes: {
         SplashPage.routeName: (_) => const SplashPage(),
         LoginPage.routeName: (_) => const LoginPage(),
@@ -128,10 +130,11 @@ class App extends StatelessWidget {
         if (settings.name == ChatPage.routeName) {
           final args = settings.arguments as Map<String, dynamic>;
           return MaterialPageRoute(
-            builder: (_) => ChatPage(
-              currentUserId: args['currentUserId'],
-              otherUserId: args['otherUserId'],
-            ),
+            builder:
+                (_) => ChatPage(
+                  currentUserId: args['currentUserId'],
+                  otherUserId: args['otherUserId'],
+                ),
           );
         }
         return null;
