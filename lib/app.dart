@@ -10,13 +10,8 @@ import 'pages/create_post_page.dart';
 import 'pages/messages_page.dart';
 import 'pages/chat_page.dart';
 import 'pages/notifications_page.dart';
-import 'db/user.dart';
-import 'db/post.dart';
-import 'db/comment.dart';
-import 'db/message.dart';
 import 'dart:async';
 import 'package:path_provider/path_provider.dart';
-import 'dart:io';
 
 class App extends StatelessWidget {
   const App({super.key});

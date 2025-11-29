@@ -22,7 +22,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int? currentUserId;
   List<PostModel> posts = [];
-  Map<int, TextEditingController> _commentControllers = {};
+  final Map<int, TextEditingController> _commentControllers = {};
 
   Future<void> loadArgs() async {
     final args =
